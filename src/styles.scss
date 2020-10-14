@@ -1,0 +1,47 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #680025;
+  animation: bcolor 4s infinite;
+}
+
+@keyframes bcolor {
+  0%,
+  100% {
+    background-color: #68000e;
+  }
+  50% {
+    background-color: #860129;
+  }
+}
+
+div {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    max-width: 90%;
+    height: 80%;
+
+    line {
+      fill: none;
+      stroke: white;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 4px;
+    }
+
+    circle {
+      fill: white;
+    }
+
+    line,
+    circle {
+      &.hidden {
+        opacity: 0;
+      }
+    }
+  }
+}
