@@ -5,6 +5,7 @@ import {
   AfterViewInit,
   Renderer2,
   ChangeDetectionStrategy,
+  HostListener,
 } from '@angular/core';
 
 @Component({
@@ -16,6 +17,9 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('head') head: ElementRef<SVGGElement>;
   @ViewChild('name') name: ElementRef<SVGGElement>;
 
+  pair: SVGElement[];
+  timer: any;
+
   constructor(private renderer: Renderer2) {}
 
   ngAfterViewInit(): void {
@@ -25,15 +29,16 @@ export class AppComponent implements AfterViewInit {
     this.makeLines(name);
     this.makeLines(head);
 
-    head.childNodes.forEach((el: SVGElement) => {
-      this.setWidth(el);
-    });
+    // head.childNodes.forEach((el: SVGElement) => {
+    //   this.setWidth(el);
+    // });
 
-    name.childNodes.forEach((el: SVGElement) => {
-      this.setWidth(el);
-    });
+    // name.childNodes.forEach((el: SVGElement) => {
+    //   this.setWidth(el);
+    // });
 
-    this.swap(name, head);
+    this.pair = [name, head];
+    this.swap();
 
     name.childNodes.forEach((el: SVGElement) => {
       this.renderer.addClass(el, 'hidden');
@@ -49,10 +54,19 @@ export class AppComponent implements AfterViewInit {
 
     setTimeout(() => {
       this.setWidth(element);
-    }, Math.random() * 3000);
+    }, Math.random() * 5000);
   }
 
-  private swap(a: SVGElement, b: SVGElement): void {
+  @HostListener('click')
+  @HostListener('document:keydown')
+  swap(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+
+    const [a, b] = this.pair;
+
     a.childNodes.forEach((el: SVGElement) => {
       this.renderer.removeClass(el, 'hidden');
 
@@ -69,9 +83,11 @@ export class AppComponent implements AfterViewInit {
       }, Math.random() * 500);
     });
 
-    setTimeout(() => {
-      this.swap(b, a);
-    }, 4000);
+    this.pair = [b, a];
+
+    this.timer = setTimeout(() => {
+      this.swap();
+    }, 10000);
   }
 
   private makeLines(element: SVGGElement): void {
@@ -106,5 +122,27 @@ export class AppComponent implements AfterViewInit {
     });
 
     elements.forEach(el => el.remove());
+
+    element.childNodes.forEach((el: SVGElement) => {
+      if (el.tagName === 'line') {
+        const animate = this.renderer.createElement(
+          'animate',
+          'http://www.w3.org/2000/svg',
+        ) as SVGAnimateElement;
+
+        const from = Math.random() * 2 + 2;
+        const to = from + Math.random() * 2 + 1;
+        const dur = Math.random() * 2 + 2;
+
+        animate.setAttribute('attributeType', 'CSS');
+        animate.setAttribute('attributeName', 'stroke-width');
+        animate.setAttribute('from', `${from.toFixed(0)}px`);
+        animate.setAttribute('to', `${to.toFixed(0)}px`);
+        animate.setAttribute('dur', `${dur}s`);
+        animate.setAttribute('repeatCount', 'indefinite');
+
+        this.renderer.appendChild(el, animate);
+      }
+    });
   }
 }
