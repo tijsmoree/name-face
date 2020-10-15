@@ -29,14 +29,6 @@ export class AppComponent implements AfterViewInit {
     this.makeLines(name);
     this.makeLines(head);
 
-    // head.childNodes.forEach((el: SVGElement) => {
-    //   this.setWidth(el);
-    // });
-
-    // name.childNodes.forEach((el: SVGElement) => {
-    //   this.setWidth(el);
-    // });
-
     this.pair = [name, head];
     this.swap();
 
@@ -45,20 +37,7 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  private setWidth(element: SVGElement): void {
-    this.renderer.setStyle(
-      element,
-      'stroke-width',
-      `${Math.random() * 4 + 3}px`,
-    );
-
-    setTimeout(() => {
-      this.setWidth(element);
-    }, Math.random() * 5000);
-  }
-
   @HostListener('click')
-  @HostListener('document:keydown')
   swap(): void {
     if (this.timer) {
       clearTimeout(this.timer);
