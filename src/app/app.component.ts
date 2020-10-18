@@ -4,37 +4,31 @@ import {
   ViewChild,
   AfterViewInit,
   Renderer2,
-  ChangeDetectionStrategy,
   HostListener,
 } from '@angular/core';
+
+const NS = 'http://www.w3.org/2000/svg';
+const HIDDEN = 'hidden';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements AfterViewInit {
-  @ViewChild('head') head: ElementRef<SVGGElement>;
-  @ViewChild('name') name: ElementRef<SVGGElement>;
+  @ViewChild('svg') svg: ElementRef<SVGElement>;
 
-  pair: SVGElement[];
+  pair: SVGGElement[];
   timer: any;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private r2: Renderer2) {}
 
   ngAfterViewInit(): void {
-    const head = this.head.nativeElement;
-    const name = this.name.nativeElement;
+    const svg = this.svg.nativeElement;
+    this.pair = Array.from(svg.childNodes).reverse() as SVGGElement[];
 
-    this.makeLines(name);
-    this.makeLines(head);
+    this.pair.forEach(el => this.makeLines(el));
 
-    this.pair = [name, head];
     this.swap();
-
-    name.childNodes.forEach((el: SVGElement) => {
-      this.renderer.addClass(el, 'hidden');
-    });
   }
 
   @HostListener('click')
@@ -47,18 +41,14 @@ export class AppComponent implements AfterViewInit {
     const [a, b] = this.pair;
 
     a.childNodes.forEach((el: SVGElement) => {
-      this.renderer.removeClass(el, 'hidden');
-
       setTimeout(() => {
-        this.renderer.addClass(el, 'hidden');
+        this.r2.addClass(el, HIDDEN);
       }, Math.random() * 500);
     });
 
     b.childNodes.forEach((el: SVGElement) => {
-      this.renderer.addClass(el, 'hidden');
-
       setTimeout(() => {
-        this.renderer.removeClass(el, 'hidden');
+        this.r2.removeClass(el, HIDDEN);
       }, Math.random() * 500);
     });
 
@@ -84,17 +74,14 @@ export class AppComponent implements AfterViewInit {
       }
 
       for (let i = 0; i < points.length - 2; i += 2) {
-        const line = this.renderer.createElement(
-          'line',
-          'http://www.w3.org/2000/svg',
-        ) as SVGLineElement;
+        const line = this.r2.createElement('line', NS) as SVGLineElement;
 
-        line.setAttribute('x1', points[i]);
-        line.setAttribute('y1', points[i + 1]);
-        line.setAttribute('x2', points[i + 2]);
-        line.setAttribute('y2', points[i + 3]);
+        this.r2.setAttribute(line, 'x1', points[i]);
+        this.r2.setAttribute(line, 'y1', points[i + 1]);
+        this.r2.setAttribute(line, 'x2', points[i + 2]);
+        this.r2.setAttribute(line, 'y2', points[i + 3]);
 
-        this.renderer.appendChild(element, line);
+        this.r2.appendChild(element, line);
       }
 
       elements.push(el);
@@ -103,25 +90,26 @@ export class AppComponent implements AfterViewInit {
     elements.forEach(el => el.remove());
 
     element.childNodes.forEach((el: SVGElement) => {
-      if (el.tagName === 'line') {
-        const animate = this.renderer.createElement(
-          'animate',
-          'http://www.w3.org/2000/svg',
-        ) as SVGAnimateElement;
+      this.r2.addClass(el, HIDDEN);
 
-        const from = Math.random() * 2 + 2;
-        const to = from + Math.random() * 2 + 1;
-        const dur = Math.random() * 2 + 2;
-
-        animate.setAttribute('attributeType', 'CSS');
-        animate.setAttribute('attributeName', 'stroke-width');
-        animate.setAttribute('from', `${from.toFixed(0)}px`);
-        animate.setAttribute('to', `${to.toFixed(0)}px`);
-        animate.setAttribute('dur', `${dur}s`);
-        animate.setAttribute('repeatCount', 'indefinite');
-
-        this.renderer.appendChild(el, animate);
+      if (el.tagName !== 'line') {
+        return;
       }
+
+      const animate = this.r2.createElement('animate', NS) as SVGAnimateElement;
+
+      const from = Math.random() * 2 + 2;
+      const to = from + Math.random() * 2 + 1;
+      const dur = Math.random() * 2 + 2;
+
+      this.r2.setAttribute(animate, 'attributeType', 'CSS');
+      this.r2.setAttribute(animate, 'attributeName', 'stroke-width');
+      this.r2.setAttribute(animate, 'from', `${from.toFixed(0)}px`);
+      this.r2.setAttribute(animate, 'to', `${to.toFixed(0)}px`);
+      this.r2.setAttribute(animate, 'dur', `${dur}s`);
+      this.r2.setAttribute(animate, 'repeatCount', 'indefinite');
+
+      this.r2.appendChild(el, animate);
     });
   }
 }
