@@ -1,10 +1,10 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
-  ViewChild,
-  AfterViewInit,
-  Renderer2,
   HostListener,
+  Renderer2,
+  ViewChild,
 } from '@angular/core';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -16,9 +16,13 @@ const HIDDEN = 'hidden';
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('svg') svg: ElementRef<SVGElement>;
+  @ViewChild('canvas') canvas: ElementRef<HTMLCanvasElement>;
 
-  pair: SVGGElement[];
-  timer: any;
+  private pair: SVGGElement[];
+  private timer: any;
+
+  private position = { x: innerWidth / 2, y: innerHeight / 2 };
+  private counter = 0;
 
   constructor(private r2: Renderer2) {}
 
@@ -29,6 +33,52 @@ export class AppComponent implements AfterViewInit {
     this.pair.forEach(el => this.makeLines(el));
 
     this.swap();
+
+    this.resize();
+  }
+
+  @HostListener('window:resize')
+  resize(): void {
+    this.canvas.nativeElement.width = innerWidth;
+    this.canvas.nativeElement.height = innerHeight;
+
+    const ctx = this.canvas.nativeElement.getContext('2d');
+    ctx.fillStyle = 'white';
+  }
+
+  @HostListener('mousemove', ['$event'])
+  move(event: MouseEvent): void {
+    const name = '  Tijs Moree  ';
+
+    const x = event.pageX;
+    const y = event.pageY;
+
+    const ctx = this.canvas.nativeElement.getContext('2d');
+    ctx.globalAlpha = Math.random() * 0.3 + 0.2;
+
+    const d = Math.sqrt(
+      (this.position.x - x) ** 2 + (this.position.y - y) ** 2,
+    );
+    ctx.font = 5 + d / 2 + 'px Georgia';
+    const size = ctx.measureText(name[this.counter]).width;
+
+    if (d > size) {
+      const angle = Math.atan2(y - this.position.y, x - this.position.x);
+
+      ctx.save();
+      ctx.translate(this.position.x, this.position.y);
+      ctx.rotate(angle);
+      ctx.fillText(name[this.counter], 0, 0);
+      ctx.restore();
+
+      this.counter++;
+      if (this.counter > name.length - 1) {
+        this.counter = 0;
+      }
+
+      this.position.x += Math.cos(angle) * size;
+      this.position.y += Math.sin(angle) * size;
+    }
   }
 
   @HostListener('click')
@@ -51,6 +101,11 @@ export class AppComponent implements AfterViewInit {
         this.r2.removeClass(el, HIDDEN);
       }, Math.random() * 500);
     });
+
+    setTimeout(() => {
+      const ctx = this.canvas.nativeElement.getContext('2d');
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+    }, Math.random() * 500);
 
     this.pair = [b, a];
 
