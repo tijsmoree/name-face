@@ -1,0 +1,3 @@
+body{margin:0;padding:0;background-color:#680025;animation:bcolor 4s infinite;cursor:pointer}:focus{outline:none!important}@keyframes bcolor{0%,to{background-color:#68000e}50%{background-color:#860129}}.main{position:relative;width:100vw;height:100vh}canvas{position:absolute;left:0;top:0;width:100vw;height:100vh}.svg{position:absolute;left:0;top:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}.svg svg{max-width:90%;height:80%}.svg svg line{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:4px}.svg svg circle{fill:#fff}.svg svg line.hidden,.svg svg circle.hidden{opacity:0}
+
+/*# sourceMappingURL=styles.727e16fc947ddbc4.css.map*/
