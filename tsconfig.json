@@ -1,22 +1,37 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
     "importHelpers": true,
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es2015",
+    "useDefineForClassFields": false,
+    "target": "ES2022",
     "typeRoots": ["./src/types", "./node_modules/@types"],
-    "lib": ["es2017", "dom"],
-    "module": "esnext",
+    "lib": ["ES2022", "DOM"],
+    "module": "ES2022",
     "baseUrl": "./src",
     "paths": {
       "@app/*": ["app/*"]
     }
   },
-  "files": ["src/main.ts", "src/polyfills.ts"]
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "strictStandalone": true
+  }
 }

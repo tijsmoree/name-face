@@ -1,4 +1,4 @@
-/node_modules
 /.angular
+/node_modules
 /.pnpm-store
 /dist

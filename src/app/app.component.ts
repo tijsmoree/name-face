@@ -1,10 +1,10 @@
 import {
-  AfterViewInit,
   Component,
+  effect,
   ElementRef,
   HostListener,
   Renderer2,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -14,36 +14,38 @@ const HIDDEN = 'hidden';
   selector: 'app-root',
   templateUrl: './app.component.html',
 })
-export class AppComponent implements AfterViewInit {
-  @ViewChild('svg') svg: ElementRef<SVGElement>;
-  @ViewChild('canvas') canvas: ElementRef<HTMLCanvasElement>;
+export class AppComponent {
+  readonly svg = viewChild.required<ElementRef<SVGElement>>('svg');
+  readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
-  private pair: SVGGElement[];
-  private timer: any;
+  private pair?: SVGGElement[];
+  private timer?: ReturnType<typeof setTimeout>;
 
   private position = { x: innerWidth / 2, y: innerHeight / 2 };
   private counter = 0;
 
-  constructor(private r2: Renderer2) {}
+  constructor(private r2: Renderer2) {
+    effect(() => {
+      const svg = this.svg().nativeElement;
+      this.pair = Array.from(svg.childNodes) as SVGGElement[];
 
-  ngAfterViewInit(): void {
-    const svg = this.svg.nativeElement;
-    this.pair = Array.from(svg.childNodes).reverse() as SVGGElement[];
+      this.pair.forEach(el => this.makeLines(el));
 
-    this.pair.forEach(el => this.makeLines(el));
+      this.swap();
+    });
 
-    this.swap();
+    effect(() => {
+      const canvas = this.canvas().nativeElement;
 
-    this.resize();
-  }
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
 
-  @HostListener('window:resize')
-  resize(): void {
-    this.canvas.nativeElement.width = innerWidth;
-    this.canvas.nativeElement.height = innerHeight;
+      const ctx = canvas.getContext('2d');
 
-    const ctx = this.canvas.nativeElement.getContext('2d');
-    ctx.fillStyle = 'white';
+      if (ctx) {
+        ctx.fillStyle = 'white';
+      }
+    });
   }
 
   @HostListener('mousemove', ['$event'])
@@ -53,7 +55,10 @@ export class AppComponent implements AfterViewInit {
     const x = event.pageX;
     const y = event.pageY;
 
-    const ctx = this.canvas.nativeElement.getContext('2d');
+    const ctx = this.canvas().nativeElement.getContext('2d');
+
+    if (!ctx) return;
+
     ctx.globalAlpha = Math.random() * 0.3 + 0.2;
 
     const d = Math.sqrt(
@@ -83,28 +88,34 @@ export class AppComponent implements AfterViewInit {
 
   @HostListener('click')
   swap(): void {
+    if (!this.pair) return;
+
     if (this.timer) {
       clearTimeout(this.timer);
-      this.timer = null;
+      this.timer = undefined;
     }
 
     const [a, b] = this.pair;
 
-    a.childNodes.forEach((el: SVGElement) => {
-      setTimeout(() => {
-        this.r2.addClass(el, HIDDEN);
-      }, Math.random() * 500);
+    a.childNodes.forEach(el => {
+      if (el instanceof SVGElement) {
+        setTimeout(() => {
+          this.r2.addClass(el, HIDDEN);
+        }, Math.random() * 500);
+      }
     });
 
-    b.childNodes.forEach((el: SVGElement) => {
-      setTimeout(() => {
-        this.r2.removeClass(el, HIDDEN);
-      }, Math.random() * 500);
+    b.childNodes.forEach(el => {
+      if (el instanceof SVGElement) {
+        setTimeout(() => {
+          this.r2.removeClass(el, HIDDEN);
+        }, Math.random() * 500);
+      }
     });
 
     setTimeout(() => {
-      const ctx = this.canvas.nativeElement.getContext('2d');
-      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      const ctx = this.canvas().nativeElement.getContext('2d');
+      ctx?.clearRect(0, 0, innerWidth, innerHeight);
     }, Math.random() * 500);
 
     this.pair = [b, a];
@@ -115,16 +126,18 @@ export class AppComponent implements AfterViewInit {
   }
 
   private makeLines(element: SVGGElement): void {
-    const elements = [];
+    const elements: SVGElement[] = [];
 
-    element.childNodes.forEach((el: SVGElement) => {
-      if (!['polyline', 'polygon'].includes(el.tagName)) {
+    element.childNodes.forEach(el => {
+      if (
+        !(el instanceof SVGPolylineElement || el instanceof SVGPolygonElement)
+      ) {
         return;
       }
 
-      const points = el.getAttribute('points').split(' ');
+      const points = el.getAttribute('points')!.split(' ');
 
-      if (el.tagName === 'polygon') {
+      if (el instanceof SVGPolygonElement) {
         points.push(points[0], points[1]);
       }
 
@@ -144,27 +157,14 @@ export class AppComponent implements AfterViewInit {
 
     elements.forEach(el => el.remove());
 
-    element.childNodes.forEach((el: SVGElement) => {
-      this.r2.addClass(el, HIDDEN);
+    element.childNodes.forEach(el => {
+      if (el instanceof SVGElement) {
+        this.r2.addClass(el, HIDDEN);
 
-      if (el.tagName !== 'line') {
-        return;
+        if (el instanceof SVGLineElement) {
+          this.r2.setStyle(el, 'stroke-width', Math.random() * 3 + 1);
+        }
       }
-
-      const animate = this.r2.createElement('animate', NS) as SVGAnimateElement;
-
-      const from = Math.random() * 2 + 2;
-      const to = from + Math.random() * 2 + 1;
-      const dur = Math.random() * 2 + 2;
-
-      this.r2.setAttribute(animate, 'attributeType', 'CSS');
-      this.r2.setAttribute(animate, 'attributeName', 'stroke-width');
-      this.r2.setAttribute(animate, 'from', `${from.toFixed(0)}px`);
-      this.r2.setAttribute(animate, 'to', `${to.toFixed(0)}px`);
-      this.r2.setAttribute(animate, 'dur', `${dur}s`);
-      this.r2.setAttribute(animate, 'repeatCount', 'indefinite');
-
-      this.r2.appendChild(el, animate);
     });
   }
 }

@@ -8,7 +8,7 @@ To develop, you need simply need [NPM](https://npmjs.com) and then [Angular](htt
 
 ## Configure web server (using Apache2)
 
-- Point the DocumentRoot of your site to the `/dist` subfolder of this repository
+Use [Docker](https://www.docker.com/) to run the associated image.
 
 ## Contributors
 
