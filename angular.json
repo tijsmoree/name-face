@@ -33,12 +33,7 @@
               "extractLicenses": false
             },
             "production": {
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true
+              "outputHashing": "all"
             }
           }
         },
